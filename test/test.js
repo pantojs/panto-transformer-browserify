@@ -19,12 +19,10 @@ describe('panto-transformer-browserify', () => {
         it('should browserify', done => {
             const files = [{
                 filename: 'main.js',
-                content: 'var foo = require("foo.js");foo();',
-                deps: ['foo.js']
+                content: 'var foo = require("foo.js");foo();'
             }, {
                 filename: 'foo.js',
-                content: 'module.exports = function(){global.__counter++;};',
-                deps: []
+                content: 'module.exports = function(){global.__counter++;};'
             }];
             new BrowserifyTransformer({
                 bundle: 'bundle.js',
@@ -38,19 +36,30 @@ describe('panto-transformer-browserify', () => {
                 assert.deepEqual(files[0].filename, 'bundle.js');
             }).then(() => done()).catch(e => console.error(e));
         });
-/*        it('should error', done => {
+        it('should error when dynamic', done => {
             const files = [{
                 filename: 'main.js',
-                content: 'var foo = require("foo.js");foo();',
-                deps: ['foo.js']
+                content: 'var foo = require(6 + "foo.js");foo();'
             }];
             new BrowserifyTransformer({
                 filename: 'bundle.js',
-                entryId: 'main.js'
-            }).transformAll(files).then((files) => {
-                console.log(files[0]);
-                done()
-            }).catch(e => {
+                entryId: 'main.js',
+                isStrict: true
+            }).transformAll(files).catch(e => {
+                console.error(e);
+                done();
+            });
+        });
+/*        it('should error when not found', done => {
+            const files = [{
+                filename: 'main.js',
+                content: 'var foo = require("foo.js");foo();'
+            }];
+            new BrowserifyTransformer({
+                filename: 'bundle.js',
+                entryId: 'main.js',
+                isStrict: true
+            }).transformAll(files).catch(e => {
                 console.error(e);
                 done();
             });

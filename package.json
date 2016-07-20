@@ -26,6 +26,7 @@
   "homepage": "https://github.com/pantojs/panto-transformer-browserify",
   "dependencies": {
     "browser-pack": "^6.0.1",
+    "esprima": "^2.7.2",
     "panto-transformer": "^0.2.2"
   },
   "devDependencies": {
