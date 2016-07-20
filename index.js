@@ -24,7 +24,10 @@ class BrowserifyTransformer extends Transformer {
             isSilent
         } = this.options;
 
-        const resolveDependencies = ({filename, content}) => {
+        const resolveDependencies = ({
+            filename,
+            content
+        }) => {
             const ast = esprima.parse(content, {
                 range: true,
                 tolerant: true,
@@ -59,6 +62,38 @@ class BrowserifyTransformer extends Transformer {
             return deps;
         };
 
+        const validate = data => {
+            let foundEntry = false;
+            data.forEach(({
+                id,
+                deps,
+                entry
+            }) => {
+                if (true === entry) {
+                    if (foundEntry) {
+                        throw new Error(`Found two entries, only one is permitted`);
+                    }
+                    foundEntry = true;
+                }
+                for (let key in deps) {
+                    let dep = deps[key];
+                    if (dep === id) {
+                        throw new Error('Cannot depend on self: ${id}');
+                    }
+                    if (!data.some(({
+                            id
+                        }) => (id === dep))) {
+                        const errMsg = `${dep} not found`;
+                         if (isStrict) {
+                            throw new Error(errMsg);
+                        } else if (!isSilent) {
+                            panto.log.warn(errMsg);
+                        }
+                    }
+                }
+            });
+        };
+
         return new Promise(resolve => {
 
             const data = files.map(file => {
@@ -69,6 +104,8 @@ class BrowserifyTransformer extends Transformer {
                     entry: entry === file.filename
                 };
             });
+
+            validate(data);
 
             const p = pack({});
 

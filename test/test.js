@@ -46,11 +46,10 @@ describe('panto-transformer-browserify', () => {
                 entryId: 'main.js',
                 isStrict: true
             }).transformAll(files).catch(e => {
-                console.error(e);
                 done();
             });
         });
-/*        it('should error when not found', done => {
+        it('should error when not found', done => {
             const files = [{
                 filename: 'main.js',
                 content: 'var foo = require("foo.js");foo();'
@@ -58,11 +57,11 @@ describe('panto-transformer-browserify', () => {
             new BrowserifyTransformer({
                 filename: 'bundle.js',
                 entryId: 'main.js',
-                isStrict: true
+                isStrict: true,
+                isSilent: false
             }).transformAll(files).catch(e => {
-                console.error(e);
                 done();
             });
-        });*/
+        });
     });
 });

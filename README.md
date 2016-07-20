@@ -15,6 +15,8 @@ panto.pick('**/*.js').browserify({
 ## options:
  - entry:String
  - bundle:String
+ - isStrict:Boolean
+ - isSilent:Boolean
 
 [npm-url]: https://npmjs.org/package/panto-transformer-browserify
 [downloads-image]: http://img.shields.io/npm/dm/panto-transformer-browserify.svg
