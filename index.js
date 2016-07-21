@@ -50,27 +50,26 @@ class BrowserifyTransformer extends Transformer {
                         }
                     });
                 };*/
+        return resolveDeps(files, this.options).then(data => {
+            return new Promise(resolve => {
 
-        return new Promise(resolve => {
+                const p = pack({});
 
-            const data = resolveDeps(files, this.options);
+                let src = '';
 
-            const p = pack({});
+                p.on('data', buf => {
+                    src += buf;
+                });
 
-            let src = '';
+                p.on('end', () => {
+                    resolve([{
+                        content: src,
+                        filename: this.options.bundle
+                    }]);
+                });
 
-            p.on('data', buf => {
-                src += buf;
+                p.end(JSON.stringify(data));
             });
-
-            p.on('end', () => {
-                resolve([{
-                    content: src,
-                    filename: this.options.bundle
-                }]);
-            });
-
-            p.end(JSON.stringify(data));
         });
     }
     isTorrential() {

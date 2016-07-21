@@ -24,22 +24,23 @@ const resolveDependencies = ({
             id
         }) => filename === id)) {
         // Has it
-        return;
+        //panto.log.help('Duplcated:', filename);
+        return Promise.resolve();
     }
+
     const {
         entry,
         isStrict,
         isSilent
     } = options;
 
+    const depNames = [];
+
     const ast = esprima.parse(content, {
         range: true,
         tolerant: true,
         sourceType: 'module'
     });
-
-    let depNames = [];
-
     JSON.stringify(ast, (key, value) => {
         if (value && 'CallExpression' === value.type && value.callee && 'require' === value
             .callee.name && Array.isArray(value.arguments)) {
@@ -60,7 +61,8 @@ const resolveDependencies = ({
 
         return value;
     });
-    
+
+
     let depMap = {};
 
     fileMap.push({
@@ -70,30 +72,70 @@ const resolveDependencies = ({
         entry: filename === entry
     });
 
-    depNames.forEach(depName => {
-        let realName = path.join(path.dirname(filename), depName);
+    if (0 === depNames.length) {
+        return Promise.resolve();
+    }
 
-        if (contentCache.has(realName)) {
-            depMap[depName] = realName;
-            return
-        }
+    const promises = depNames.map(depName => {
+        return new Promise((resolve, reject) => {
+            let realName = path.join(path.dirname(filename), depName);
 
-        realName = nodeResolve.resolve(filename, depName, path.join(panto.getOption('cwd'), panto.getOption(
-            'src')));
-        if (realName) {
-            let shortName = path.relative(filename, depName);
-            depMap[depName] = shortName;
+            if (contentCache.has(realName)) {
+                depMap[depName] = realName;
+                return resolve();
+            }
+            //panto.log.help(`before`,filename, depName);
+            realName = nodeResolve.resolve(filename, depName, path.join(panto.getOption('cwd'),
+                panto.getOption('src')));
 
-            panto.log.warn(`${realName}=>${shortName}`);
+            //panto.log.debug(`In ${filename}:`, depName, '=>', realName);
 
-            resolveDependencies({
-                filename: realName,
-                content: contentCache.get(shortName) || panto.file.read(realName)
-            }, fileMap, contentCache, options);
-        }
+            if (realName) {
+                depMap[depName] = realName;
+
+                if (contentCache.has(realName)) {
+                    let st = Date.now();
+                    let inter = setTimeout(() => {
+                        panto.log.error(`${realName} timeout`);
+                    }, 5000);
+                    return resolveDependencies({
+                        filename: realName,
+                        content: contentCache.get(realName)
+                    }, fileMap, contentCache, options).then(() => {
+                        clearTimeout(inter);
+                        resolve();
+                    }, err => {
+                        clearTimeout(inter);
+                        reject(err);
+                    });
+                } else {
+                    let st = Date.now();
+                    let inter = setTimeout(() => {
+                        panto.log.error(`${realName} timeout`);
+                    }, 5000);
+                    return panto.file.read(realName).then(content => {
+
+                        return resolveDependencies({
+                            filename: realName,
+                            content
+                        }, fileMap, contentCache, options);
+                    }).then(() => {
+                        clearTimeout(inter);
+                        resolve();
+                    }, err => {
+                        clearTimeout(inter);
+                        reject(err);
+                    });
+                }
+            } else {
+                return resolve();
+            }
+
+        });
 
     });
 
+    return Promise.all(promises);
 };
 
 module.exports = (files, options) => {
@@ -107,7 +149,7 @@ module.exports = (files, options) => {
         content
     }) => contentCache.set(filename, content));
 
-    files.forEach(file => resolveDependencies(file, fileMap, contentCache, options));
+    const promises = files.map(file => resolveDependencies(file, fileMap, contentCache, options));
 
-    return fileMap;
+    return files.length ? Promise.all(promises).then(() => fileMap) : Promise.resolve(fileMap);
 };

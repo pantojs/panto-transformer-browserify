@@ -1,4 +1,15 @@
 /**
+ * Copyright (C) 2016 yanni4night.com
+ * test.js
+ *
+ * changelog
+ * 2016-07-21[18:05:33]:revised
+ *
+ * @author yanni4night@gmail.com
+ * @version 0.1.0
+ * @since 0.1.0
+ */
+/**
  * Copyright (C) 2016 pantojs.xyz
  * test.js
  *
@@ -19,11 +30,38 @@ panto.file.rimraf(__dirname + '/result*', {
 });
 
 panto.setOptions({
-    cwd: __dirname
+    cwd: __dirname + '/..',
+    src: '.',
+    output: 'test'
 });
 
+const createTmpFile = () => {
+    return `result-${Date.now()}.js`;
+};
+
 describe('panto-transformer-browserify', () => {
-    describe('#transformAll', () => {
+    describe('#transformAll', function () {
+        this.timeout(1e6);
+        it('should bundle node_moduels', done => {
+            const files = [{
+                filename: 'main.js',
+                content: 'var React = require("react"); module.exports = global.React = React;'
+            }];
+            const f = createTmpFile();
+            new BrowserifyTransformer({
+                bundle: 'bundle.js',
+                entry: 'main.js',
+                isStrict: false,
+                isSilent: false
+            }).transformAll(files).then(files => {
+                return panto.file.write(f, files[0].content);
+            }).then(() => {
+                require(__dirname + '/' + f);
+                assert.ok(!!global.React);
+                return panto.file.rimraf(f);
+            }).then(() => done()).catch(e => console.error(
+                e));
+        });
         it('should browserify', done => {
             const files = [{
                 filename: 'main.js',
@@ -32,19 +70,22 @@ describe('panto-transformer-browserify', () => {
                 filename: 'foo.js',
                 content: 'module.exports = function(){global.__counter++;};'
             }];
+            const f = createTmpFile();
             new BrowserifyTransformer({
                 bundle: 'bundle.js',
                 entry: 'main.js'
             }).transformAll(files).then(files => {
-                const resultFile = `./result-${Date.now()}.es`;
-                require('fs').writeFileSync(__dirname + '/' + resultFile,
+                assert.deepEqual(files[0].filename, 'bundle.js');
+                return panto.file.write(f,
                     'global.__counter=0;' + files[0].content +
                     ';module.exports=global.__counter;');
-                assert.deepEqual(require(resultFile), 1);
-                assert.deepEqual(files[0].filename, 'bundle.js');
+
+            }).then(() => {
+                assert.deepEqual(require(__dirname + '/' + f), 1);
+
             }).then(() => done()).catch(e => console.error(e));
         });
-        it('should error when dynamic', done => {
+/*        it('should error when dynamic', done => {
             const files = [{
                 filename: 'main.js',
                 content: 'var foo = require(6 + "foo.js");foo();'
@@ -56,7 +97,7 @@ describe('panto-transformer-browserify', () => {
             }).transformAll(files).catch(e => {
                 done();
             });
-        });
+        });*/
         /*it('should error when not found', done => {
             const files = [{
                 filename: 'main.js',
