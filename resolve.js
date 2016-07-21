@@ -24,7 +24,6 @@ const resolveDependencies = ({
             id
         }) => filename === id)) {
         // Has it
-        //panto.log.help('Duplcated:', filename);
         return Promise.resolve();
     }
 
@@ -84,48 +83,25 @@ const resolveDependencies = ({
                 depMap[depName] = realName;
                 return resolve();
             }
-            //panto.log.help(`before`,filename, depName);
+
             realName = nodeResolve.resolve(filename, depName, path.join(panto.getOption('cwd'),
                 panto.getOption('src')));
-
-            //panto.log.debug(`In ${filename}:`, depName, '=>', realName);
 
             if (realName) {
                 depMap[depName] = realName;
 
                 if (contentCache.has(realName)) {
-                    let st = Date.now();
-                    let inter = setTimeout(() => {
-                        panto.log.error(`${realName} timeout`);
-                    }, 5000);
                     return resolveDependencies({
                         filename: realName,
                         content: contentCache.get(realName)
-                    }, fileMap, contentCache, options).then(() => {
-                        clearTimeout(inter);
-                        resolve();
-                    }, err => {
-                        clearTimeout(inter);
-                        reject(err);
-                    });
+                    }, fileMap, contentCache, options).then(resolve, reject);
                 } else {
-                    let st = Date.now();
-                    let inter = setTimeout(() => {
-                        panto.log.error(`${realName} timeout`);
-                    }, 5000);
                     return panto.file.read(realName).then(content => {
-
                         return resolveDependencies({
                             filename: realName,
                             content
                         }, fileMap, contentCache, options);
-                    }).then(() => {
-                        clearTimeout(inter);
-                        resolve();
-                    }, err => {
-                        clearTimeout(inter);
-                        reject(err);
-                    });
+                    }).then(resolve, reject);
                 }
             } else {
                 return resolve();
