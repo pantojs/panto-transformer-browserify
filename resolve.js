@@ -6,7 +6,7 @@
  * 2016-07-21[13:12:07]:revised
  *
  * @author yanni4night@gmail.com
- * @version 0.1.0
+ * @version 0.1.1
  * @since 0.1.0
  */
 'use strict';
@@ -29,38 +29,38 @@ const resolveDependencies = ({
 
     const {
         entry,
-        isStrict,
-        isSilent
+        isStrict
     } = options;
 
     const depNames = [];
 
-    const ast = esprima.parse(content, {
-        range: true,
-        tolerant: true,
-        sourceType: 'module'
-    });
-    JSON.stringify(ast, (key, value) => {
-        if (value && 'CallExpression' === value.type && value.callee && 'require' === value
-            .callee.name && Array.isArray(value.arguments)) {
-            if (value.arguments.length !== 1 || 'Literal' !== value.arguments[0].type) {
-                const expression = content.slice(value.range[0], value.range[1]);
-                const errMsg = `Dynamic require is not supported: "${expression}"` + (
-                    filename ? ` in ${filename}` : '');
-                if (isStrict) {
-                    throw new Error(errMsg);
-                } else if (!isSilent) {
-                    panto.log.warn(errMsg);
+    try {
+        const ast = esprima.parse(content, {
+            range: true,
+            tolerant: true,
+            sourceType: 'module'
+        });
+        JSON.stringify(ast, (key, value) => {
+            if (value && 'CallExpression' === value.type && value.callee && 'require' === value
+                .callee.name && Array.isArray(value.arguments)) {
+                if (value.arguments.length !== 1 || 'Literal' !== value.arguments[0].type) {
+                    const expression = content.slice(value.range[0], value.range[1]);
+                    const errMsg = `Dynamic require is not supported: "${expression}"` + (
+                        filename ? ` in ${filename}` : '');
+                    if (isStrict) {
+                        throw new Error(errMsg);
+                    } 
+                } else {
+                    let d = value.arguments[0].value;
+                    depNames.push(d);
                 }
-            } else {
-                let d = value.arguments[0].value;
-                depNames.push(d);
             }
-        }
 
-        return value;
-    });
-
+            return value;
+        });
+    } catch (e) {
+        return Promise.reject(e);
+    }
 
     let depMap = {};
 
@@ -104,6 +104,8 @@ const resolveDependencies = ({
                     }).then(resolve, reject);
                 }
             } else {
+                panto.log.warn(`${depName} not found in ${filename}`);
+                depMap[depName] = depName;
                 return resolve();
             }
 

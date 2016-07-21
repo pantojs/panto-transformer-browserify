@@ -1,15 +1,4 @@
 /**
- * Copyright (C) 2016 yanni4night.com
- * test.js
- *
- * changelog
- * 2016-07-21[18:05:33]:revised
- *
- * @author yanni4night@gmail.com
- * @version 0.1.0
- * @since 0.1.0
- */
-/**
  * Copyright (C) 2016 pantojs.xyz
  * test.js
  *
@@ -30,9 +19,9 @@ panto.file.rimraf(__dirname + '/result*', {
 });
 
 panto.setOptions({
-    cwd: __dirname + '/..',
+    cwd: __dirname,
     src: '.',
-    output: 'test'
+    output: '.'
 });
 
 const createTmpFile = () => {
@@ -40,8 +29,7 @@ const createTmpFile = () => {
 };
 
 describe('panto-transformer-browserify', () => {
-    describe('#transformAll', function () {
-        this.timeout(1e6);
+    describe('#transformAll', () => {
         it('should bundle node_moduels', done => {
             const files = [{
                 filename: 'main.js',
@@ -82,10 +70,10 @@ describe('panto-transformer-browserify', () => {
 
             }).then(() => {
                 assert.deepEqual(require(__dirname + '/' + f), 1);
-
+                return panto.file.rimraf(f);
             }).then(() => done()).catch(e => console.error(e));
         });
-/*        it('should error when dynamic', done => {
+        it('should error when dynamic', done => {
             const files = [{
                 filename: 'main.js',
                 content: 'var foo = require(6 + "foo.js");foo();'
@@ -97,8 +85,8 @@ describe('panto-transformer-browserify', () => {
             }).transformAll(files).catch(e => {
                 done();
             });
-        });*/
-        /*it('should error when not found', done => {
+        });
+        it('should error when not found', done => {
             const files = [{
                 filename: 'main.js',
                 content: 'var foo = require("foo.js");foo();'
@@ -111,6 +99,6 @@ describe('panto-transformer-browserify', () => {
             }).transformAll(files).catch(e => {
                 done();
             });
-        });*/
+        });
     });
 });

@@ -3,6 +3,8 @@
 
 Browserify transformer for panto.
 
+This [transformer](https://github.com/pantojs/panto-transformer) supports bundle node_modules.
+
 ```js
 panto.loadTransformer('browserify');
 
