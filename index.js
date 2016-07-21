@@ -13,112 +13,60 @@
 
 const Transformer = require('panto-transformer');
 const pack = require('browser-pack');
-const esprima = require('esprima');
+const resolveDeps = require('./resolve');
 
 class BrowserifyTransformer extends Transformer {
     transformAll(files) {
-        const {
-            entry,
-            bundle,
-            isStrict,
-            isSilent
-        } = this.options;
 
-        const resolveDependencies = ({
-            filename,
-            content
-        }) => {
-            const ast = esprima.parse(content, {
-                range: true,
-                tolerant: true,
-                sourceType: 'module'
-            });
 
-            let deps = {};
-
-            JSON.stringify(ast, (key, value) => {
-                if (value && 'CallExpression' === value.type && value.callee && 'require' === value
-                    .callee.name &&
-                    Array.isArray(value.arguments)) {
-                    if (value.arguments.length !== 1 || 'Literal' !== value.arguments[0].type) {
-                        const expression = content.slice(value.range[0], value.range[1]);
-                        const errMsg = `Dynamic require is not supported: "${expression}"` + (
-                            filename ?
-                            ` in ${filename}` : '');
-                        if (isStrict) {
-                            throw new Error(errMsg);
-                        } else if (!isSilent) {
-                            panto.log.warn(errMsg);
+        /*        const validate = data => {
+                    let foundEntry = false;
+                    data.forEach(({
+                        id,
+                        deps,
+                        entry
+                    }) => {
+                        if (true === entry) {
+                            if (foundEntry) {
+                                throw new Error(`Found two entries, only one is permitted`);
+                            }
+                            foundEntry = true;
                         }
-                    } else {
-                        let d = value.arguments[0].value;
-                        deps[d] = d;
-                    }
-                }
-
-                return value;
-            });
-
-            return deps;
-        };
-
-        const validate = data => {
-            let foundEntry = false;
-            data.forEach(({
-                id,
-                deps,
-                entry
-            }) => {
-                if (true === entry) {
-                    if (foundEntry) {
-                        throw new Error(`Found two entries, only one is permitted`);
-                    }
-                    foundEntry = true;
-                }
-                for (let key in deps) {
-                    let dep = deps[key];
-                    if (dep === id) {
-                        throw new Error('Cannot depend on self: ${id}');
-                    }
-                    if (!data.some(({
-                            id
-                        }) => (id === dep))) {
-                        const errMsg = `${dep} not found`;
-                         if (isStrict) {
-                            throw new Error(errMsg);
-                        } else if (!isSilent) {
-                            panto.log.warn(errMsg);
+                        for (let key in deps) {
+                            let dep = deps[key];
+                            if (dep === id) {
+                                throw new Error('Cannot depend on self: ${id}');
+                            }
+                            if (!data.some(({
+                                    id
+                                }) => (id === dep))) {
+                                const errMsg = `${dep} not found`;
+                                 if (isStrict) {
+                                    throw new Error(errMsg);
+                                } else if (!isSilent) {
+                                    panto.log.warn(errMsg);
+                                }
+                            }
                         }
-                    }
-                }
-            });
-        };
+                    });
+                };*/
 
         return new Promise(resolve => {
 
-            const data = files.map(file => {
-                return {
-                    id: file.filename,
-                    source: file.content,
-                    deps: resolveDependencies(file),
-                    entry: entry === file.filename
-                };
-            });
-
-            validate(data);
+            const data = resolveDeps(files, this.options);
 
             const p = pack({});
 
             let src = '';
 
-            p.on('data', function (buf) {
+            p.on('data', buf => {
                 src += buf;
             });
 
-            p.on('end', function () {
+            p.on('end', () => {
                 resolve([{
                     content: src,
-                    filename: bundle
+                    filename: this.options.bundle
                 }]);
             });
 
