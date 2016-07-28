@@ -15,8 +15,8 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'polyfill.js',
-      'test-polyfill.js'
+      'dist/polyfill.js',
+      'dist/test-polyfill.js'
     ],
 
 

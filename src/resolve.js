@@ -73,12 +73,18 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
 
     let depMap = {};
 
+    const isEntry = panto.file.locate(filename) === panto.file.locate(entry);
+
     fileMap.push({
         id: filename,
         source: content,
         deps: depMap,
-        entry: panto.file.locate(filename) === panto.file.locate(entry)
+        entry: isEntry
     });
+
+    if (isEntry) {
+        depNames.unshift('process', 'buffer');
+    }
 
     if (0 === depNames.length) {
         return Promise.resolve();

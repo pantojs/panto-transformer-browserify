@@ -11,11 +11,12 @@
   */
 'use strict';
 
+exports.process = require.resolve('./process');
+exports.buffer = require.resolve('./buffer');
 exports.assert = require.resolve('assert/');
-exports.buffer = require.resolve('buffer/');
 exports.child_process = require.resolve('./empty.js');
 exports.cluster = require.resolve('./empty.js');
-//exports.crypto = require.resolve('crypto-browserify');
+exports.crypto = require.resolve('crypto-browserify');
 exports.dgram = require.resolve('./empty.js');
 exports.dns = require.resolve('./empty.js');
 exports.domain = require.resolve('domain-browser');
@@ -27,7 +28,7 @@ exports.module = require.resolve('./empty.js');
 exports.net = require.resolve('./empty.js');
 exports.os = require.resolve('os-browserify/browser.js');
 exports.path = require.resolve('path-browserify');
-exports.punycode = require.resolve('punycode/');
+//exports.punycode = require.resolve('punycode/');
 exports.querystring = require.resolve('querystring-es3/');
 exports.readline = require.resolve('./empty.js');
 exports.repl = require.resolve('./empty.js');
@@ -46,4 +47,3 @@ exports.url = require.resolve('url/');
 exports.util = require.resolve('util/');
 exports.vm = require.resolve('vm-browserify');
 exports.zlib = require.resolve('browserify-zlib');
-exports._process = require.resolve('process/browser');

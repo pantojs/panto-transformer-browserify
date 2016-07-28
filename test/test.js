@@ -12,24 +12,15 @@
 'use strict';
 const assert = require('assert');
 const panto = require('panto');
-const BrowserifyTransformer = require('../');
+const BrowserifyTransformer = require('../src/');
 
-panto.file.rimraf(__dirname + '/result*', {
-    force: true
-});
-
-panto.setOptions({
-    cwd: __dirname,
-    src: '.',
-    output: '.'
-});
-
-const createTmpFile = () => {
-    return `result-${Date.now()}.es`;
-};
+panto.loadTransformer('read', require('panto-transformer-read'));
+panto.loadTransformer('write', require('panto-transformer-write'));
+panto.loadTransformer('browserify', BrowserifyTransformer);
 
 describe('panto-transformer-browserify', () => {
-    describe('#transformAll', () => {
+    describe('#transformAll', function() {
+        this.timeout(5e3);
         it('should error when dynamic', done => {
             const files = [{
                 filename: 'main.js',
@@ -58,25 +49,23 @@ describe('panto-transformer-browserify', () => {
             });
         });
         it('should polyfill', done => {
-            const f = '../polyfill.js';
-            const builtins =
-                Object.keys(require('../builtin'));
-
-            const files = [{
-                filename: 'main.js',
-                content: builtins.map(function (builtin) {
-                    return 'var ' + builtin + ' = require("' + builtin +
-                        '");window.__$' + builtin + ' = ' + builtin + ';'
-                }).join('\n')
-            }];
-            new BrowserifyTransformer({
-                filename: 'bundle.js',
-                entry: 'main.js'
-            }).transformAll(files).then(files => {
-                return panto.file.write(f, files[0].content)
-            }).then(() => done()).catch(e => {
-                console.error(e);
+            panto.clear();
+            panto.setOptions({
+                cwd: __dirname + '/../',
+                src: 'polyfill',
+                output: 'dist'
             });
+
+            panto.$('polyfill.js').read().browserify({
+                entry: 'polyfill.js',
+                bundle: 'polyfill.js'
+            }).write();
+            panto.$('test-polyfill.js').read().browserify({
+                entry: 'test-polyfill.js',
+                bundle: 'test-polyfill.js'
+            }).write();
+
+            panto.build().then(() => done()).catch(e => console.error(e));
         });
     });
 });
