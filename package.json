@@ -5,7 +5,8 @@
   "main": "src/",
   "scripts": {
     "karma": "./node_modules/.bin/karma start --single-run --browsers PhantomJS",
-    "test": "eslint src && ./node_modules/.bin/mocha && npm run karma"
+    "test": "eslint src && ./node_modules/.bin/mocha && npm run karma",
+    "coveralls": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
   },
   "pre-commit": "test",
   "repository": {
@@ -54,10 +55,12 @@
     "vm-browserify": "0.0.4"
   },
   "devDependencies": {
+    "coveralls": "^2.11.12",
     "karma": "^1.1.2",
     "karma-mocha": "^1.1.1",
     "karma-phantomjs-launcher": "^1.0.1",
     "mocha": "^2.5.3",
+    "mocha-lcov-reporter": "^1.2.0",
     "panto": "0.0.28",
     "panto-transformer-babel": "^0.1.4",
     "panto-transformer-read": "^0.3.2",

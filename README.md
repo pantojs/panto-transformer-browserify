@@ -1,5 +1,5 @@
 # panto-transformer-browserify
-[![NPM version][npm-image]][npm-url] [![Downloads][downloads-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency status][david-dm-image]][david-dm-url] [![Dev Dependency status][david-dm-dev-image]][david-dm-dev-url]
+[![NPM version][npm-image]][npm-url] [![Downloads][downloads-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency status][david-dm-image]][david-dm-url] [![Dev Dependency status][david-dm-dev-image]][david-dm-dev-url] [![Coverage Status][coveralls-image]][coveralls-url]
 
 Browserify transformer for panto.
 
@@ -29,3 +29,5 @@ panto.pick('**/*.js').browserify({
 [david-dm-image]:https://david-dm.org/pantojs/panto-transformer-browserify.svg
 [david-dm-dev-url]:https://david-dm.org/pantojs/panto-transformer-browserify#info=devDependencies
 [david-dm-dev-image]:https://david-dm.org/pantojs/panto-transformer-browserify/dev-status.svg
+[coveralls-image]:https://coveralls.io/repos/github/pantojs/panto-transformer-browserify/badge.svg?branch=master
+[coveralls-url]:https://coveralls.io/github/pantojs/panto-transformer-browserify?branch=master
