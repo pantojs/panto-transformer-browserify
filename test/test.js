@@ -80,7 +80,7 @@ describe('panto-transformer-browserify', () => {
             }];
             new BrowserifyTransformer({
                 filename: 'bundle.js',
-                entryId: 'main.js',
+                entry: 'main.js',
                 isStrict: true
             }).transformAll(files).catch(e => {
                 done();
@@ -93,7 +93,7 @@ describe('panto-transformer-browserify', () => {
             }];
             new BrowserifyTransformer({
                 filename: 'bundle.js',
-                entryId: 'main.js',
+                entry: 'main.js',
                 isStrict: true,
                 isSilent: false
             }).transformAll(files).catch(e => {

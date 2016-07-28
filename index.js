@@ -48,7 +48,7 @@ class BrowserifyTransformer extends Transformer {
                         if (isStrict) {
                             throw new Error(errMsg);
                         } else if (!isSilent) {
-                            panto.log.error(errMsg);
+                            panto.log.warn(errMsg);
                         }
                     }
                 }

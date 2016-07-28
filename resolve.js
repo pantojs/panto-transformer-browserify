@@ -68,7 +68,7 @@ const resolveDependencies = ({
         id: filename,
         source: content,
         deps: depMap,
-        entry: filename === entry
+        entry: panto.file.locate(filename) === panto.file.locate(entry)
     });
 
     if (0 === depNames.length) {
@@ -84,8 +84,7 @@ const resolveDependencies = ({
                 return resolve();
             }
 
-            realName = nodeResolve.resolve(filename, depName, path.join(panto.getOption('cwd'),
-                panto.getOption('src')));
+            realName = nodeResolve.resolve(filename, depName, panto.file.touch('.'));
 
             if (realName) {
                 depMap[depName] = realName;
@@ -104,7 +103,6 @@ const resolveDependencies = ({
                     }).then(resolve, reject);
                 }
             } else {
-                panto.log.warn(`${depName} not found in ${filename}`);
                 depMap[depName] = depName;
                 return resolve();
             }

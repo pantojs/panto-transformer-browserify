@@ -31,7 +31,7 @@
     "panto-transformer": "^0.2.2"
   },
   "devDependencies": {
-    "panto": "0.0.23",
+    "panto": "0.0.28",
     "react": "^15.2.1"
   }
 }
