@@ -25,7 +25,7 @@ panto.setOptions({
 });
 
 const createTmpFile = () => {
-    return `result-${Date.now()}.js`;
+    return `result-${Date.now()}.es`;
 };
 
 describe('panto-transformer-browserify', () => {
@@ -98,6 +98,26 @@ describe('panto-transformer-browserify', () => {
                 isSilent: false
             }).transformAll(files).catch(e => {
                 done();
+            });
+        });
+        it('should polyfill', done => {
+            const f = createTmpFile();
+            const files = [{
+                filename: 'main.js',
+                content: 'var assert = require("assert");global.__assert = assert;'
+            }];
+            new BrowserifyTransformer({
+                filename: 'bundle.js',
+                entry: 'main.js'
+            }).transformAll(files).then(files => {
+                return panto.file.write(f, files[0].content)
+            }).then(() => {
+                require(__dirname + '/' + f);
+                assert.ok(global.__assert.deepEqual);
+            }).then(()=>{
+               // panto.file.remove(f);
+            }).then(() => done()).catch(e => {
+                console.error(e);
             });
         });
     });

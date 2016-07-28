@@ -14,11 +14,16 @@
 const nodeResolve = require('node-resolve');
 const path = require('path');
 const esprima = require('esprima');
+const isBuiltinModule = require('is-builtin-module');
+const builtin = require('./builtin');
 
-const resolveDependencies = ({
-    filename,
-    content
-}, fileMap, contentCache, options) => {
+const resolveDependencies = (file, fileMap, contentCache, options) => {
+    let {
+        filename,
+        content
+    } = file;
+
+    const BASE_DIR = file.basedir || panto.file.locate('.');
 
     if (fileMap.some(({
             id
@@ -49,7 +54,7 @@ const resolveDependencies = ({
                         filename ? ` in ${filename}` : '');
                     if (isStrict) {
                         throw new Error(errMsg);
-                    } 
+                    }
                 } else {
                     let d = value.arguments[0].value;
                     depNames.push(d);
@@ -77,6 +82,34 @@ const resolveDependencies = ({
 
     const promises = depNames.map(depName => {
         return new Promise((resolve, reject) => {
+
+            if (isBuiltinModule(depName)) {
+                // It's a builtin module, loopup polyfill
+                if (depName in builtin) {
+                    const realPolyfillPath = require.resolve(builtin[depName]);
+                    const polyfillId = path.relative(__dirname, realPolyfillPath);
+                    depMap[depName] = polyfillId;
+                    const xxx = path.relative(panto.file.locate('.'), realPolyfillPath);
+
+                    return panto.file.read(xxx).then(content => {
+                        return resolveDependencies({
+                            filename: polyfillId,
+                            content,
+                            basedir: __dirname
+                        }, fileMap, contentCache, options);
+                    }).then(resolve, reject);
+                } else {
+                    depMap[depName] = depName;
+                    fileMap.push({
+                        id: depName,
+                        source: '',
+                        deps: {}
+                    });
+                    return resolve();
+                }
+            }
+
+
             let realName = path.join(path.dirname(filename), depName);
 
             if (contentCache.has(realName)) {
@@ -84,7 +117,7 @@ const resolveDependencies = ({
                 return resolve();
             }
 
-            realName = nodeResolve.resolve(filename, depName, panto.file.touch('.'));
+            realName = nodeResolve.resolve(filename, depName, BASE_DIR, true);
 
             if (realName) {
                 depMap[depName] = realName;
@@ -92,13 +125,16 @@ const resolveDependencies = ({
                 if (contentCache.has(realName)) {
                     return resolveDependencies({
                         filename: realName,
-                        content: contentCache.get(realName)
+                        content: contentCache.get(realName),
+                        basedir: BASE_DIR
                     }, fileMap, contentCache, options).then(resolve, reject);
                 } else {
-                    return panto.file.read(realName).then(content => {
+                    const xxx = path.relative(panto.file.locate('.'), path.join(BASE_DIR, realName));
+                    return panto.file.read(xxx).then(content => {
                         return resolveDependencies({
                             filename: realName,
-                            content
+                            content,
+                            basedir: BASE_DIR
                         }, fileMap, contentCache, options);
                     }).then(resolve, reject);
                 }
