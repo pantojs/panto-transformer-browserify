@@ -34,6 +34,7 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
 
     const {
         entry,
+        isSlient,
         isStrict
     } = options;
 
@@ -64,6 +65,9 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
             return value;
         });
     } catch (e) {
+        if (!isSlient) {
+            panto.log.warn(`BrowserifyTransform parse error:[${filename}]: ${e.message}`);
+        }
         return Promise.reject(e);
     }
 
@@ -83,7 +87,7 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
     const promises = depNames.map(depName => {
         return new Promise((resolve, reject) => {
 
-            if (isBuiltinModule(depName)) {
+            if (isBuiltinModule(depName) || (depName in builtin)) {
                 // It's a builtin module, loopup polyfill
                 if (depName in builtin) {
                     const realPolyfillPath = require.resolve(builtin[depName]);
@@ -92,6 +96,9 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
                     const xxx = path.relative(panto.file.locate('.'), realPolyfillPath);
 
                     return panto.file.read(xxx).then(content => {
+                        if (/\.json$/i.test(xxx)) {
+                            content = 'module.exports=' + content;
+                        }
                         return resolveDependencies({
                             filename: polyfillId,
                             content,
@@ -131,6 +138,9 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
                 } else {
                     const xxx = path.relative(panto.file.locate('.'), path.join(BASE_DIR, realName));
                     return panto.file.read(xxx).then(content => {
+                        if (/\.json$/i.test(xxx)) {
+                            content = 'module.exports=' + content;
+                        }
                         return resolveDependencies({
                             filename: realName,
                             content,

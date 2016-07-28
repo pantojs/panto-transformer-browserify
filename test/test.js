@@ -30,49 +30,6 @@ const createTmpFile = () => {
 
 describe('panto-transformer-browserify', () => {
     describe('#transformAll', () => {
-        it('should bundle node_moduels', done => {
-            const files = [{
-                filename: 'main.js',
-                content: 'var React = require("react"); module.exports = global.React = React;'
-            }];
-            const f = createTmpFile();
-            new BrowserifyTransformer({
-                bundle: 'bundle.js',
-                entry: 'main.js',
-                isStrict: false,
-                isSilent: false
-            }).transformAll(files).then(files => {
-                return panto.file.write(f, files[0].content);
-            }).then(() => {
-                require(__dirname + '/' + f);
-                assert.ok(!!global.React);
-                return panto.file.rimraf(f);
-            }).then(() => done()).catch(e => console.error(
-                e));
-        });
-        it('should browserify', done => {
-            const files = [{
-                filename: 'main.js',
-                content: 'var foo = require("./foo.js");foo();'
-            }, {
-                filename: 'foo.js',
-                content: 'module.exports = function(){global.__counter++;};'
-            }];
-            const f = createTmpFile();
-            new BrowserifyTransformer({
-                bundle: 'bundle.js',
-                entry: 'main.js'
-            }).transformAll(files).then(files => {
-                assert.deepEqual(files[0].filename, 'bundle.js');
-                return panto.file.write(f,
-                    'global.__counter=0;' + files[0].content +
-                    ';module.exports=global.__counter;');
-
-            }).then(() => {
-                assert.deepEqual(require(__dirname + '/' + f), 1);
-                return panto.file.rimraf(f);
-            }).then(() => done()).catch(e => console.error(e));
-        });
         it('should error when dynamic', done => {
             const files = [{
                 filename: 'main.js',
@@ -101,21 +58,22 @@ describe('panto-transformer-browserify', () => {
             });
         });
         it('should polyfill', done => {
-            const f = createTmpFile();
+            const f = '../polyfill.js';
+            const builtins =
+                Object.keys(require('../builtin'));
+
             const files = [{
                 filename: 'main.js',
-                content: 'var assert = require("assert");global.__assert = assert;'
+                content: builtins.map(function (builtin) {
+                    return 'var ' + builtin + ' = require("' + builtin +
+                        '");window.__$' + builtin + ' = ' + builtin + ';'
+                }).join('\n')
             }];
             new BrowserifyTransformer({
                 filename: 'bundle.js',
                 entry: 'main.js'
             }).transformAll(files).then(files => {
                 return panto.file.write(f, files[0].content)
-            }).then(() => {
-                require(__dirname + '/' + f);
-                assert.ok(global.__assert.deepEqual);
-            }).then(()=>{
-               // panto.file.remove(f);
             }).then(() => done()).catch(e => {
                 console.error(e);
             });
