@@ -1,6 +1,6 @@
 {
   "name": "panto-transformer-browserify",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Browserify transformer for panto",
   "main": "src/",
   "scripts": {
@@ -34,6 +34,7 @@
     "browserify-zlib": "^0.1.4",
     "buffer": "^4.7.1",
     "crypto-browserify": "^3.11.0",
+    "disk-map": "^0.1.0",
     "domain-browser": "^1.1.7",
     "esprima": "^2.7.2",
     "events": "^1.1.1",

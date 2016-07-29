@@ -16,6 +16,14 @@ const path = require('path');
 const esprima = require('esprima');
 const isBuiltinModule = require('is-builtin-module');
 const builtin = require('./builtin');
+const DiskMap = require('disk-map');
+const crypto = require('crypto');
+
+const cache = new DiskMap();
+
+const digest = content => {
+    return crypto.createHash('md5').update(content).digest('hex');
+};
 
 const resolveDependencies = (file, fileMap, contentCache, options) => {
     let {
@@ -42,35 +50,43 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
 
     let depNames = [];
 
-    try {
-        const ast = esprima.parse(content, {
-            range: true,
-            tolerant: true,
-            sourceType: 'module'
-        });
-        JSON.stringify(ast, (key, value) => {
-            if (value && 'CallExpression' === value.type && value.callee && 'require' === value
-                .callee.name && Array.isArray(value.arguments)) {
-                if (value.arguments.length !== 1 || 'Literal' !== value.arguments[0].type) {
-                    const expression = content.slice(value.range[0], value.range[1]);
-                    const errMsg = `Dynamic require is not supported: "${expression}"` + (
-                        filename ? ` in ${filename}` : '');
-                    if (isStrict) {
-                        throw new Error(errMsg);
-                    }
-                } else {
-                    let d = value.arguments[0].value;
-                    depNames.push(d);
-                }
-            }
+    const md5 = digest(content);
 
-            return value;
-        });
-    } catch (e) {
-        if (!isSlient) {
-            panto.log.warn(`BrowserifyTransform parse error:[${filename}]: ${e.message}`);
+    if (cache.has(md5)) {
+        depNames = JSON.parse(cache.get(md5));
+    } else {
+
+        try {
+            const ast = esprima.parse(content, {
+                range: true,
+                tolerant: true,
+                sourceType: 'module'
+            });
+            JSON.stringify(ast, (key, value) => {
+                if (value && 'CallExpression' === value.type && value.callee && 'require' === value
+                    .callee.name && Array.isArray(value.arguments)) {
+                    if (value.arguments.length !== 1 || 'Literal' !== value.arguments[0].type) {
+                        const expression = content.slice(value.range[0], value.range[1]);
+                        const errMsg = `Dynamic require is not supported: "${expression}"` + (
+                            filename ? ` in ${filename}` : '');
+                        if (isStrict) {
+                            throw new Error(errMsg);
+                        }
+                    } else {
+                        let d = value.arguments[0].value;
+                        depNames.push(d);
+                    }
+                }
+
+                return value;
+            });
+        } catch (e) {
+            if (!isSlient) {
+                panto.log.warn(`BrowserifyTransform parse error:[${filename}]: ${e.message}`);
+            }
+            return Promise.reject(e);
         }
-        return Promise.reject(e);
+        cache.set(md5, JSON.stringify(depNames));
     }
 
     let depMap = {};
@@ -89,7 +105,7 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
 
         if (panto._.isPlainObject(process)) {
             depNames.unshift('_merge');
-            preContent=`;require('_merge')(require(\'process\'),${JSON.stringify(process)});`;
+            preContent = `;require('_merge')(require(\'process\'),${JSON.stringify(process)});`;
         }
 
         content = preContent + content;
