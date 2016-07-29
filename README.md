@@ -10,10 +10,12 @@ panto.loadTransformer('browserify');
 
 panto.pick('**/*.js').browserify({
     entry: 'main.js',
-    bundle: 'bundle.js'
+    bundle: 'bundle.js',
     buffer: true,
     process: {
-        env: 'production'
+        env: {
+            NODE_ENV: 'production'
+        }
     }
 });
 ```
