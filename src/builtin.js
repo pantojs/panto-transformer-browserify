@@ -11,8 +11,6 @@
   */
 'use strict';
 
-exports.process = require.resolve('./process');
-exports.buffer = require.resolve('./buffer');
 exports.assert = require.resolve('assert/');
 exports.child_process = require.resolve('./empty.js');
 exports.cluster = require.resolve('./empty.js');
@@ -47,3 +45,6 @@ exports.url = require.resolve('url/');
 exports.util = require.resolve('util/');
 exports.vm = require.resolve('vm-browserify');
 exports.zlib = require.resolve('browserify-zlib');
+exports.process = require.resolve('./process');
+exports.buffer = require.resolve('./buffer');
+exports._merge = require.resolve('lodash/merge.js');

@@ -11,8 +11,6 @@
  */
 'use strict';
 
-global.__$process = require('process');
-global.__$buffer = require('buffer');
 global.__$assert = require('assert');
 global.__$child_process = require('child_process');
 global.__$cluster = require('cluster');
@@ -42,3 +40,5 @@ global.__$url = require('url');
 global.__$util = require('util');
 global.__$vm = require('vm');
 global.__$zlib = require('zlib');
+global.__$process = require('process');
+global.__$buffer = require('buffer');

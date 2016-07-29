@@ -9,8 +9,12 @@ This [transformer](https://github.com/pantojs/panto-transformer) supports bundle
 panto.loadTransformer('browserify');
 
 panto.pick('**/*.js').browserify({
-    entry: 'main.js'
+    entry: 'main.js',
     bundle: 'bundle.js'
+    buffer: true,
+    process: {
+        env: 'production'
+    }
 });
 ```
 
@@ -19,6 +23,8 @@ panto.pick('**/*.js').browserify({
  - bundle:String
  - isStrict:Boolean
  - isSilent:Boolean
+ - buffer:Boolean, if use `Buffer` polyfill
+ - process:Boolean|Object
 
 [npm-url]: https://npmjs.org/package/panto-transformer-browserify
 [downloads-image]: http://img.shields.io/npm/dm/panto-transformer-browserify.svg

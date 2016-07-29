@@ -71,7 +71,7 @@ class BrowserifyTransformer extends Transformer {
                 p.on('end', () => {
                     resolve([{
                         content: `(function(global){${src}})(this);`,
-                        filename: this.options.bundle
+                        filename: this.options.bundle || this.options.entry
                     }]);
                 });
 

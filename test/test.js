@@ -19,7 +19,7 @@ panto.loadTransformer('write', require('panto-transformer-write'));
 panto.loadTransformer('browserify', BrowserifyTransformer);
 
 describe('panto-transformer-browserify', () => {
-    describe('#transformAll', function() {
+    describe('#transformAll', function () {
         this.timeout(5e3);
         it('should error when dynamic', done => {
             const files = [{
@@ -56,11 +56,17 @@ describe('panto-transformer-browserify', () => {
                 output: 'dist'
             });
 
-            panto.$('polyfill.js').read().browserify({
+            panto.$('polyfill.js').tag('polyfill.js').read().browserify({
                 entry: 'polyfill.js',
-                bundle: 'polyfill.js'
+                bundle: 'polyfill.js',
+                buffer: true,
+                process: {
+                    env: {
+                        NODE_ENV: 'production'
+                    }
+                }
             }).write();
-            panto.$('test-polyfill.js').read().browserify({
+            panto.$('test-polyfill.js').tag('test-polyfill.js').read().browserify({
                 entry: 'test-polyfill.js',
                 bundle: 'test-polyfill.js'
             }).write();

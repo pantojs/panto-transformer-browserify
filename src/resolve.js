@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016 yanni4night.com
+ * Copyright (C) 2016 pantojs.xyz
  * resolve.js
  *
  * changelog
@@ -35,10 +35,12 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
     const {
         entry,
         isSlient,
-        isStrict
+        isStrict,
+        buffer,
+        process
     } = options;
 
-    const depNames = [];
+    let depNames = [];
 
     try {
         const ast = esprima.parse(content, {
@@ -75,6 +77,24 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
 
     const isEntry = panto.file.locate(filename) === panto.file.locate(entry);
 
+    if (isEntry && buffer) {
+        depNames.unshift('buffer');
+        content = ';require(\'buffer\');' + content;
+    }
+
+    if (isEntry && process) {
+        depNames.unshift('process');
+
+        let preContent = ';require(\'process\');';
+
+        if (panto._.isPlainObject(process)) {
+            depNames.unshift('_merge');
+            preContent=`;require('_merge')(require(\'process\'),${JSON.stringify(process)});`;
+        }
+
+        content = preContent + content;
+    }
+
     fileMap.push({
         id: filename,
         source: content,
@@ -82,9 +102,7 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
         entry: isEntry
     });
 
-    if (isEntry) {
-        depNames.unshift('process', 'buffer');
-    }
+    depNames = panto._.uniq(depNames);
 
     if (0 === depNames.length) {
         return Promise.resolve();

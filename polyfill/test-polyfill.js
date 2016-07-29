@@ -14,10 +14,14 @@ var assert = require('assert');
 
 describe('#polyfill', function () {
     var builtins =
-        'process,buffer,assert,child_process,cluster,crypto,dgram,dns,domain,events,fs,http,https,module,net,os,path,querystring,readline,repl,stream,string_decoder,sys,timers,tls,tty,url,util,vm,zlib'.split(',');
+        'assert,child_process,cluster,crypto,dgram,dns,domain,events,fs,http,https,module,net,os,path,querystring,readline,repl,stream,string_decoder,sys,timers,tls,tty,url,util,vm,zlib,process,buffer'
+        .split(',');
     builtins.forEach(function (builtin) {
-        it(builtin, function() {
+        it(builtin, function () {
             assert.ok(window['__$' + builtin]);
         });
+    });
+    it('should get process.env.NODE_ENV', function () {
+        assert.deepEqual(process.env.NODE_ENV, 'production');
     });
 });
