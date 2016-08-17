@@ -4,10 +4,11 @@
  *
  * changelog
  * 2016-06-24[17:01:26]:revised
+ * 2016-08-17[23:30:46]:test case for useless module(s)
  *
  * @author yanni4night@gmail.com
- * @version 1.0.0
- * @since 1.0.0
+ * @version 0.1.4
+ * @since 0.1.0
  */
 'use strict';
 const assert = require('assert');
@@ -72,6 +73,29 @@ describe('panto-transformer-browserify', () => {
             }).write();
 
             panto.build().then(() => done()).catch(e => console.error(e));
+        });
+        it('should remove useless modules', done => {
+            const files = [{
+                filename: 'main.js',
+                content: 'require("bar.js");module.exports = 80;'
+            }, {
+                filename: 'bar.js',
+                content: 'module.exports = 93;'
+            }, {
+                filename: 'foo.js',
+                content: 'module.exports = 67;'
+            }];
+            new BrowserifyTransformer({
+                filename: 'bundle.js',
+                entry: 'main.js',
+                isStrict: true,
+                isSilent: false
+            }).transformAll(files).then(files => {
+                const file = files[0];
+                assert.ok(/80/.test(file.content), 'has main.js');
+                assert.ok(/93/.test(file.content), 'has bar.js');
+                assert.ok(!/67/.test(file.content), 'has no foo.js');
+            }).then(() => done()).catch(e => console.error(e));
         });
     });
 });

@@ -3,12 +3,12 @@
 
 Browserify transformer for panto.
 
-This [transformer](https://github.com/pantojs/panto-transformer) supports bundle node_modules.
+This [transformer](https://github.com/pantojs/panto-transformer) supports bundle modules in node_modules.
 
 ```js
 panto.loadTransformer('browserify');
 
-panto.pick('**/*.js').browserify({
+panto.$('**/*.js').browserify({
     entry: 'main.js',
     bundle: 'bundle.js',
     buffer: true,
@@ -21,12 +21,12 @@ panto.pick('**/*.js').browserify({
 ```
 
 ## options:
- - entry:String
- - bundle:String
- - isStrict:Boolean
- - isSilent:Boolean
- - buffer:Boolean, if use `Buffer` polyfill
- - process:Boolean|Object
+ - entry: String
+ - bundle: String
+ - isStrict: Boolean
+ - isSilent: Boolean
+ - buffer: Boolean, if use `Buffer` polyfill
+ - process: Boolean|Object
 
 [npm-url]: https://npmjs.org/package/panto-transformer-browserify
 [downloads-image]: http://img.shields.io/npm/dm/panto-transformer-browserify.svg
@@ -35,7 +35,7 @@ panto.pick('**/*.js').browserify({
 [travis-image]: http://img.shields.io/travis/pantojs/panto-transformer-browserify.svg
 [david-dm-url]:https://david-dm.org/pantojs/panto-transformer-browserify
 [david-dm-image]:https://david-dm.org/pantojs/panto-transformer-browserify.svg
-[david-dm-dev-url]:https://david-dm.org/pantojs/panto-transformer-browserify#info=devDependencies
+[david-dm-dev-url]:https://david-dm.org/pantojs/panto-transformer-browserify#type=dev
 [david-dm-dev-image]:https://david-dm.org/pantojs/panto-transformer-browserify/dev-status.svg
 [coveralls-image]:https://coveralls.io/repos/github/pantojs/panto-transformer-browserify/badge.svg?branch=master
 [coveralls-url]:https://coveralls.io/github/pantojs/panto-transformer-browserify?branch=master

@@ -4,9 +4,10 @@
  *
  * changelog
  * 2016-07-21[13:12:07]:revised
+ * 2016-08-17[23:30:03]:remove useless module(s)
  *
  * @author yanni4night@gmail.com
- * @version 0.1.1
+ * @version 0.1.4
  * @since 0.1.0
  */
 'use strict';
@@ -19,6 +20,8 @@ const builtin = require('./builtin');
 const DiskMap = require('disk-map');
 const crypto = require('crypto');
 
+
+// internal cache
 const cache = new DiskMap();
 
 const digest = content => {
@@ -93,11 +96,12 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
 
     const isEntry = panto.file.locate(filename) === panto.file.locate(entry);
 
+    // mock buffer in global context
     if (isEntry && buffer) {
         depNames.unshift('buffer');
         content = ';require(\'buffer\');' + content;
     }
-
+    // mock process in global context
     if (isEntry && process) {
         depNames.unshift('process');
 
@@ -111,6 +115,7 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
         content = preContent + content;
     }
 
+    // Add it
     fileMap.push({
         id: filename,
         source: content,
@@ -118,17 +123,18 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
         entry: isEntry
     });
 
+    // unique dependencies
     depNames = panto._.uniq(depNames);
 
+    // no dependency?
     if (0 === depNames.length) {
         return Promise.resolve();
     }
 
     const promises = depNames.map(depName => {
         return new Promise((resolve, reject) => {
-
+            // It's a builtin module, loopup polyfill
             if (isBuiltinModule(depName) || (depName in builtin)) {
-                // It's a builtin module, loopup polyfill
                 if (depName in builtin) {
                     const realPolyfillPath = require.resolve(builtin[depName]);
                     const polyfillId = path.relative(__dirname, realPolyfillPath);
@@ -158,12 +164,17 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
 
 
             let realName = path.join(path.dirname(filename), depName);
-
+            // Find in memory cache first
             if (contentCache.has(realName)) {
                 depMap[depName] = realName;
-                return resolve();
+                return resolveDependencies({
+                    filename: realName,
+                    content: contentCache.get(realName),
+                    basedir: BASE_DIR
+                }, fileMap, contentCache, options).then(resolve, reject);
             }
 
+            // Find in file system
             realName = nodeResolve.resolve(filename, depName, BASE_DIR, true);
 
             if (realName) {
@@ -189,6 +200,7 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
                     }).then(resolve, reject);
                 }
             } else {
+                // not found
                 depMap[depName] = depName;
                 return resolve();
             }
@@ -206,12 +218,27 @@ module.exports = (files, options) => {
 
     const contentCache = new Map();
 
-    files.forEach(({
-        filename,
-        content
-    }) => contentCache.set(filename, content));
+    let entryFile;
 
-    const promises = files.map(file => resolveDependencies(file, fileMap, contentCache, options));
+    files.forEach(file => {
+        const {
+            filename,
+            content
+        } = file;
 
-    return files.length ? Promise.all(promises).then(() => fileMap) : Promise.resolve(fileMap);
+        contentCache.set(filename, content);
+
+        const isEntry = panto.file.locate(filename) === panto.file.locate(options.entry);
+
+        if (isEntry) {
+            entryFile = file;
+        }
+    });
+
+    if (!entryFile) {
+        return Promise.resolve(fileMap);
+    } else {
+        // through entry file ONLY
+        return resolveDependencies(entryFile, fileMap, contentCache, options).then(() => fileMap);
+    }
 };
