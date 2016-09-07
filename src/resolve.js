@@ -5,10 +5,10 @@
  * changelog
  * 2016-07-21[13:12:07]:revised
  * 2016-08-17[23:30:03]:remove useless module(s)
- * 2016-09-07[23:24:48]:support alias option
+ * 2016-09-07[23:24:48]:support aliases option
  *
  * @author yanni4night@gmail.com
- * @version 0.1.5
+ * @version 0.1.6
  * @since 0.1.0
  */
 'use strict';
@@ -50,7 +50,7 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
         isStrict,
         buffer,
         process,
-        alias
+        aliases
     } = options;
 
     let depNames = [];
@@ -132,9 +132,10 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
         return Promise.resolve();
     }
 
-    const promises = depNames.map(depName => {
-        if (alias && depName in alias) {
-            depName = alias[depName];
+    const promises = depNames.map(oriDepName => {
+        let depName = oriDepName;
+        if (aliases && oriDepName in aliases) {
+            depName = aliases[oriDepName];
         }
         return new Promise((resolve, reject) => {
             // It's a builtin module, loopup polyfill
@@ -142,7 +143,7 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
                 if (depName in builtin) {
                     const realPolyfillPath = require.resolve(builtin[depName]);
                     const polyfillId = path.relative(__dirname, realPolyfillPath);
-                    depMap[depName] = polyfillId;
+                    depMap[oriDepName] = polyfillId;
                     const xxx = path.relative(panto.file.locate('.'), realPolyfillPath);
 
                     return panto.file.read(xxx).then(content => {
@@ -156,7 +157,7 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
                         }, fileMap, contentCache, options);
                     }).then(resolve, reject);
                 } else {
-                    depMap[depName] = depName;
+                    depMap[oriDepName] = depName;
                     fileMap.push({
                         id: depName,
                         source: '',
@@ -170,7 +171,7 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
             let realName = path.join(path.dirname(filename), depName);
             // Find in memory cache first
             if (contentCache.has(realName)) {
-                depMap[depName] = realName;
+                depMap[oriDepName] = realName;
                 return resolveDependencies({
                     filename: realName,
                     content: contentCache.get(realName),
@@ -182,7 +183,7 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
             realName = nodeResolve.resolve(filename, depName, BASE_DIR, true);
 
             if (realName) {
-                depMap[depName] = realName;
+                depMap[oriDepName] = realName;
 
                 if (contentCache.has(realName)) {
                     return resolveDependencies({
@@ -205,7 +206,7 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
                 }
             } else {
                 // not found
-                depMap[depName] = depName;
+                depMap[oriDepName] = depName;
                 return resolve();
             }
 

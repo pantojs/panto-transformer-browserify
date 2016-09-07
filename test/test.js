@@ -8,7 +8,7 @@
  * 2016-09-07[23:24:29]:support alias option
  *
  * @author yanni4night@gmail.com
- * @version 0.1.5
+ * @version 0.1.6
  * @since 0.1.0
  */
 'use strict';
@@ -112,7 +112,7 @@ describe('panto-transformer-browserify', () => {
             new BrowserifyTransformer({
                 filename: 'bundle.js',
                 entry: 'main.js',
-                alias: {
+                aliases: {
                     "bar.js": "foo.js"
                 },
                 isStrict: true,

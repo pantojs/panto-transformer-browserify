@@ -17,7 +17,7 @@ panto.$('**/*.js').browserify({
             NODE_ENV: 'production'
         }
     },
-    alias: {
+    aliases: {
         react: 'preact-compat'
     }
 });
@@ -30,7 +30,7 @@ panto.$('**/*.js').browserify({
  - isSilent: Boolean
  - buffer: Boolean, if use `Buffer` polyfill
  - process: Boolean|Object
- - alias: Object
+ - aliases: Object
 
 [npm-url]: https://npmjs.org/package/panto-transformer-browserify
 [downloads-image]: http://img.shields.io/npm/dm/panto-transformer-browserify.svg

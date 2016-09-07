@@ -1,6 +1,6 @@
 {
   "name": "panto-transformer-browserify",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Browserify transformer for panto",
   "main": "src/",
   "scripts": {
