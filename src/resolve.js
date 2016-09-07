@@ -5,9 +5,10 @@
  * changelog
  * 2016-07-21[13:12:07]:revised
  * 2016-08-17[23:30:03]:remove useless module(s)
+ * 2016-09-07[23:24:48]:support alias option
  *
  * @author yanni4night@gmail.com
- * @version 0.1.4
+ * @version 0.1.5
  * @since 0.1.0
  */
 'use strict';
@@ -48,7 +49,8 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
         isSlient,
         isStrict,
         buffer,
-        process
+        process,
+        alias
     } = options;
 
     let depNames = [];
@@ -58,7 +60,6 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
     if (cache.has(md5)) {
         depNames = JSON.parse(cache.get(md5));
     } else {
-
         try {
             const ast = esprima.parse(content, {
                 range: true,
@@ -132,6 +133,9 @@ const resolveDependencies = (file, fileMap, contentCache, options) => {
     }
 
     const promises = depNames.map(depName => {
+        if (alias && depName in alias) {
+            depName = alias[depName];
+        }
         return new Promise((resolve, reject) => {
             // It's a builtin module, loopup polyfill
             if (isBuiltinModule(depName) || (depName in builtin)) {

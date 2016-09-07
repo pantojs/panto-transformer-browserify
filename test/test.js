@@ -5,9 +5,10 @@
  * changelog
  * 2016-06-24[17:01:26]:revised
  * 2016-08-17[23:30:46]:test case for useless module(s)
+ * 2016-09-07[23:24:29]:support alias option
  *
  * @author yanni4night@gmail.com
- * @version 0.1.4
+ * @version 0.1.5
  * @since 0.1.0
  */
 'use strict';
@@ -95,6 +96,32 @@ describe('panto-transformer-browserify', () => {
                 assert.ok(/80/.test(file.content), 'has main.js');
                 assert.ok(/93/.test(file.content), 'has bar.js');
                 assert.ok(!/67/.test(file.content), 'has no foo.js');
+            }).then(() => done()).catch(e => console.error(e));
+        });
+        it('should support alias', done => {
+            const files = [{
+                filename: 'main.js',
+                content: 'require("bar.js");module.exports = 80;'
+            }, {
+                filename: 'bar.js',
+                content: 'module.exports = 93;'
+            }, {
+                filename: 'foo.js',
+                content: 'module.exports = 67;'
+            }];
+            new BrowserifyTransformer({
+                filename: 'bundle.js',
+                entry: 'main.js',
+                alias: {
+                    "bar.js": "foo.js"
+                },
+                isStrict: true,
+                isSilent: false
+            }).transformAll(files).then(files => {
+                const file = files[0];
+                assert.ok(/80/.test(file.content), 'has main.js');
+                assert.ok(!/93/.test(file.content), 'has no bar.js');
+                assert.ok(/67/.test(file.content), 'has foo.js');
             }).then(() => done()).catch(e => console.error(e));
         });
     });

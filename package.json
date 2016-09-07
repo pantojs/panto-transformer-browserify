@@ -1,6 +1,6 @@
 {
   "name": "panto-transformer-browserify",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Browserify transformer for panto",
   "main": "src/",
   "scripts": {
@@ -64,7 +64,7 @@
     "karma-phantomjs-launcher": "^1.0.1",
     "mocha": "^3.0.2",
     "mocha-lcov-reporter": "^1.2.0",
-    "panto": "0.0.30",
+    "panto": "0.0.33",
     "panto-transformer-babel": "^0.1.4",
     "panto-transformer-read": "^0.3.3",
     "panto-transformer-write": "^0.3.3",
